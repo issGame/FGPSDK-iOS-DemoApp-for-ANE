@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" applicationDPI="320" initialize="init(event)">
+	<fx:Script>
+		<![CDATA[
+			import com.issgame.sdk.FGPANE;
+			import com.issgame.sdk.OrderInfo;
+			import com.issgame.sdk.FGPEvent;
+			
+			import mx.events.FlexEvent;
+			
+			protected function OnClickPayButton(event:MouseEvent):void
+			{
+				var Order:OrderInfo = new OrderInfo();
+				Order.ServerNam = "梦幻口袋一区";		// 服务器名称(允许为空)
+				Order.AppOrderID = "11111";			// 合作平台订单号(不允许为空)
+				Order.ProductID = 1300;				// 当前支付产品ID(由掌聚分配的产品ID)(不允许为空)
+				Order.UserName = "emckemckemck";	// 用户名(不允许为空)
+				Order.UserID = -1;					// 用户UID(不允许为空)
+				Order.Price = 1;					// 当前支付的产品金额,单位分(不允许为空)
+				Order.PrivateInfo = "测试中文";		// 合作伙伴私有数据,订单支付完毕后返回给合作伙伴(允许为空)
+				if ((FGPANE.Instance.doPay(JSON.stringify(Order)) as Boolean) == false) {
+					trace("FGPSDK: 支付申请失败...");
+				}
+			}
+			
+			private function statusHandler(event:FGPEvent):void
+			{
+				if (event.code == FGPEvent.StatusWaitPay) {				// 等待支付状态
+					// 等待支付状态,可忽略,无需任何处理处理
+					Message.text = Message.text  +  "StatusCode=" + event.Data.StatusCode + " " + event.Data.Message + "\n";
+				}
+				else if (event.code == FGPEvent.StatusPayOrderSucceed) {// 支付成功
+					// 请获取 event.Data 中的内容 event.Data是一个Object对象,是从Json生成的,如果不知道里面都有什么参数,那么请先打印出来,看一下就清楚了.
+					Message.text = Message.text  + JSON.stringify(event.Data);
+				}
+				else if (event.code == FGPEvent.StatusPayOrderFail) {	// 支付失败
+					// 支付失败,需提示用户失败信息...
+					Message.text = Message.text  +  "StatusCode=" + event.Data.StatusCode + " " + event.Data.Message + "\n";
+				}
+				else if (event.code == FGPEvent.StatusOtherFail) {		// 其他失败信息
+					// 其他失败信息,可做个提示(原则上这个失败信息应该不会出现)
+					Message.text = Message.text  +  "StatusCode=" + event.Data.StatusCode + " " + event.Data.Message + "\n";
+				}
+				else {													// 不可识别的事件
+					Message.text = Message.text  + event.code + " " + event.level + "\n";
+				}
+			}
+			
+			protected function init(event:FlexEvent):void
+			{
+				// 初始化FGPANE接口定义
+				// listener:Function  回调方法,接口所有回调集中在该方法中
+				// AppID:int          AppID由掌聚平台分配,针对一款应用唯一
+				// AppKey:String      AppKey由掌聚平台分配,对应AppID
+				// Channel:String     渠道标识,每发行一个渠道需修改该值,如果该值设定错误,初始化过程会提示错误(详细渠道列表请从掌聚平台获取)
+				// NetWorkTimeOut:int 网络超时时间,默认为30秒
+				FGPANE.Init(statusHandler,6020,"Iv2RUnUhkyTsWhN6","EmckTest");
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+	</fx:Declarations>
+	<s:Button x="0" y="110" click="OnClickPayButton(event)" label="支付测试"/>
+	<s:TextArea id="Message" x="10" y="300" height="600" text=""/>
+</s:Application>
